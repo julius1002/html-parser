@@ -52,8 +52,9 @@ namespace HtmlParser
 
     ParseResult<std::string> parse_tag(std::string raw, int &index)
     {
-        std::string output;
         ParseResult<std::string> pr;
+
+        std::string output;
         if (!isalpha(raw.at(index)))
         {
             std::stringstream ss;
@@ -74,18 +75,22 @@ namespace HtmlParser
         }
         index++;
         pr.emplace<1>(output);
+
         return pr;
-    };
+    }
 
     ParseResult<HtmlElement> parse_html_element(std::string raw, int &index)
     {
         HtmlElement he;
         ParseResult<char> isChar = parse_character('<', raw, index);
+
         if (std::holds_alternative<std::string>(isChar))
         {
             return std::get<std::string>(isChar);
         }
+
         ParseResult<std::string> tagName = parse_tag(raw, index);
+
         if (tagName.index() == 0)
         {
             // return error message
@@ -97,17 +102,20 @@ namespace HtmlParser
         }
         try
         {
+            ParsingUtils::skip_spaces_newlines(raw, index);
             if (isalnum(raw.at(index)))
             {
                 std::string content = ParsingUtils::parse_string(raw, index);
                 he.content = content;
             }
+            ParsingUtils::skip_spaces_newlines(raw, index);
             if (raw.at(index) == '<')
             {
                 if (raw.at(index + 1) == '/')
                 {
                     index += 2;
                     ParseResult<std::string> closingTag = parse_tag(raw, index);
+
                     if (closingTag.index() == 0)
                     {
                         // return error message
@@ -128,11 +136,13 @@ namespace HtmlParser
                 {
                     while (true)
                     {
+                        ParsingUtils::skip_spaces_newlines(raw, index);
                         if (raw.at(index) == '<' && raw.at(index + 1) == '/')
                         {
                             break;
                         }
                         ParseResult<HtmlElement> child = parse_html_element(raw, index);
+
                         if (std::holds_alternative<std::string>(child))
                         {
                             return std::get<std::string>(child);
@@ -149,6 +159,7 @@ namespace HtmlParser
                         {
                             index += 2;
                             ParseResult<std::string> closingTag = parse_tag(raw, index);
+
                             if (closingTag.index() == 0)
                             {
                                 return std::get<0>(closingTag);
@@ -202,22 +213,20 @@ namespace HtmlParser
     {
         int index = 0;
 
-        ParsingUtils::skip_spaces(raw, index);
         std::vector<HtmlElement> elements{};
         while (true)
         {
-            if (static_cast<size_t>(index) == raw.length())
-            {
-                break;
-            }
+            ParsingUtils::skip_spaces_newlines(raw, index);
             ParseResult<HtmlElement> he = parse_html_element(raw, index);
-
             if (std::holds_alternative<std::string>(he))
             {
                 return std::get<std::string>(he);
             }
-
             elements.push_back(std::get<HtmlElement>(he));
+            if (static_cast<size_t>(index) >= raw.length())
+            {
+                break;
+            }
         }
         return elements;
     }

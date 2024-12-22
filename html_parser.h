@@ -10,10 +10,11 @@ namespace HtmlParser
         bool isClosed() const
         {
             return closed;
-        }
-        void setClosed(bool closed){
+        };
+        void setClosed(bool closed)
+        {
             this->closed = closed;
-        }
+        };
 
     private:
         bool closed = false;

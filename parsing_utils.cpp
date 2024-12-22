@@ -2,10 +2,9 @@
 
 namespace ParsingUtils
 {
-
-    void skip_spaces(std::string raw, int &index)
+    void skip_spaces_newlines(std::string raw, int &index)
     {
-        while (raw.at(index) == ' ')
+        while (raw.at(index) == ' ' || raw.at(index) == '\n')
         {
             index++;
         }
@@ -15,7 +14,7 @@ namespace ParsingUtils
     {
         std::string output;
 
-        while (isalpha(raw.at(index)))
+        while (isalnum(raw.at(index)) || isspace(raw.at(index)))
         {
             output += raw.at(index++);
         }

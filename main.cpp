@@ -3,7 +3,7 @@
 
 int main()
 {
-    std::string raw = R"(<html><head></head><body><div><p></p>test</div></body></html>)";
+    std::string raw = R"(  <html>   <head>    </head>    <body>    <div>    <p>   test    </p>   </div>   </body>   </html>)";
     HtmlParser::ParseResult<HtmlParser::HtmlTree> dt = HtmlParser::parse(raw);
 
     if (std::holds_alternative<std::string>(dt))
@@ -14,6 +14,7 @@ int main()
     {
         HtmlParser::HtmlTree d = std::get<HtmlParser::HtmlTree>(dt);
         std::string str = HtmlParser::to_string(d);
+
         std::cout << str;
         std::vector<HtmlParser::HtmlElement> unclosedElements = HtmlParser::notClosedElements(d);
         for (const auto &elem : unclosedElements)
