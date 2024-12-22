@@ -19,14 +19,14 @@ namespace HtmlParser
         bool closed = false;
     };
 
-    using DomTree = std::vector<HtmlElement>;
+    using HtmlTree = std::vector<HtmlElement>;
 
     template <typename T>
     using ParseResult = std::variant<std::string, T>;
 
-    ParseResult<DomTree> parse(std::string raw);
+    ParseResult<HtmlTree> parse(std::string raw);
 
-    std::string to_string(DomTree dt);
+    std::string to_string(HtmlTree dt);
 
-    std::vector<HtmlElement> notClosedElements(DomTree dt);
+    std::vector<HtmlElement> notClosedElements(HtmlTree dt);
 }

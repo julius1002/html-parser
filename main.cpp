@@ -3,8 +3,8 @@
 
 int main()
 {
-    std::string raw = R"(<html>)";
-    HtmlParser::ParseResult<HtmlParser::DomTree> dt = HtmlParser::parse(raw);
+    std::string raw = R"(<html><head></head><body><div><p></p>test</div></body></html>)";
+    HtmlParser::ParseResult<HtmlParser::HtmlTree> dt = HtmlParser::parse(raw);
 
     if (std::holds_alternative<std::string>(dt))
     {
@@ -12,7 +12,7 @@ int main()
     }
     else
     {
-        HtmlParser::DomTree d = std::get<HtmlParser::DomTree>(dt);
+        HtmlParser::HtmlTree d = std::get<HtmlParser::HtmlTree>(dt);
         std::string str = HtmlParser::to_string(d);
         std::cout << str;
         std::vector<HtmlParser::HtmlElement> unclosedElements = HtmlParser::notClosedElements(d);

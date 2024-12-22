@@ -25,7 +25,7 @@ namespace HtmlParser
         return ss.str();
     }
 
-    std::string to_string(DomTree dt)
+    std::string to_string(HtmlTree dt)
     {
         std::stringstream ss;
         for (auto const &e : dt)
@@ -33,7 +33,7 @@ namespace HtmlParser
             ss << to_string(e);
         }
         return ss.str();
-        }
+    }
 
     ParseResult<char> parse_character(char ch, std::string raw, int &index)
     {
@@ -85,7 +85,6 @@ namespace HtmlParser
         {
             return std::get<std::string>(isChar);
         }
-
         ParseResult<std::string> tagName = parse_tag(raw, index);
         if (tagName.index() == 0)
         {
@@ -98,6 +97,11 @@ namespace HtmlParser
         }
         try
         {
+            if (isalnum(raw.at(index)))
+            {
+                std::string content = ParsingUtils::parse_string(raw, index);
+                he.content = content;
+            }
             if (raw.at(index) == '<')
             {
                 if (raw.at(index + 1) == '/')
@@ -122,7 +126,6 @@ namespace HtmlParser
                 }
                 else
                 {
-                    // TODO parse multiple children instead of only one
                     while (true)
                     {
                         if (raw.at(index) == '<' && raw.at(index + 1) == '/')
@@ -184,21 +187,22 @@ namespace HtmlParser
         return he;
     }
 
-    std::vector<HtmlElement> notClosedElements(DomTree dt)
+    std::vector<HtmlElement> notClosedElements(HtmlTree dt)
     {
         std::vector<HtmlElement> result;
         std::ranges::copy(
-            dt | std::views::filter([](const HtmlElement &e)
-                                    { return !e.isClosed(); }),
+            dt | std::views::filter(
+                     [](const HtmlElement &e)
+                     { return !e.isClosed(); }),
             std::back_inserter(result));
         return result;
     }
 
-    ParseResult<DomTree> parse(std::string raw)
+    ParseResult<HtmlTree> parse(std::string raw)
     {
         int index = 0;
 
-        skip_spaces(raw, index);
+        ParsingUtils::skip_spaces(raw, index);
         std::vector<HtmlElement> elements{};
         while (true)
         {

@@ -1,9 +1,25 @@
 #include <string>
 
-void skip_spaces(std::string raw, int &index)
+namespace ParsingUtils
 {
-    while (raw.at(index) == ' ')
+
+    void skip_spaces(std::string raw, int &index)
     {
-        index++;
+        while (raw.at(index) == ' ')
+        {
+            index++;
+        }
     }
+
+    std::string parse_string(std::string raw, int &index)
+    {
+        std::string output;
+
+        while (isalpha(raw.at(index)))
+        {
+            output += raw.at(index++);
+        }
+
+        return output;
+    };
 }
