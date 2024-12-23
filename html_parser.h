@@ -31,5 +31,5 @@ namespace HtmlParser
 
     std::string to_string(HtmlTree dt);
 
-    std::vector<HtmlElement> notClosedElements(HtmlTree dt);
+    std::vector<HtmlElement> notClosedElements(HtmlTree htmlTree);
 }
