@@ -13,38 +13,120 @@ namespace HtmlRenderer
 
     void create_elements(HtmlParser::HtmlTree htmlTree)
     {
-        ImVec4 black_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
+        ImVec4 black_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
         for (auto const &elem : htmlTree)
         {
-            if (elem.tagName == "html")
+            switch (elem.tagName)
             {
-                create_elements(elem.children);
-                return;
-            }
-            std::vector<std::string> vec{"div", "head", "body"};
-            std::string tag = elem.tagName;
+                {
+                case HtmlParser::HtmlTag::HTML:
+                {
+                    create_elements(elem.children);
+                    return;
+                }
+                case HtmlParser::HtmlTag::HEAD:
+                case HtmlParser::HtmlTag::BODY:
+                case HtmlParser::HtmlTag::DIV:
+                {
+                    ImGui::BeginChild("DivContainer", ImVec2(300, 100), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+                    if (elem.content != "")
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, black_color);
+                        ImGui::Text(elem.content.c_str());
+                        ImGui::PopStyleColor();
+                    }
+                    create_elements(elem.children);
 
-            if (std::find(vec.begin(), vec.end(), tag) != vec.end())
-            {
-                ImGui::BeginChild("DivContainer", ImVec2(300, 100), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-                if (elem.content != "")
+                    ImGui::EndChild();
+                    continue;
+                }
+                case HtmlParser::HtmlTag::P:
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, black_color);
+                    ImGui::Dummy(ImVec2(0, 10));
                     ImGui::Text(elem.content.c_str());
+                    ImGui::Dummy(ImVec2(0, 10));
                     ImGui::PopStyleColor();
+                    continue;
                 }
-                create_elements(elem.children);
+                case HtmlParser::HtmlTag::INPUT:
+                {
+                    static char buffer[256] = "";
+                    ImGui::PushItemWidth(200);
+                    if (ImGui::InputText("##", buffer, sizeof(buffer)))
+                    {
+                        // This will be triggered when the user modifies the input field
+                        // std::cout << "User input: " << inputText << std::endl;
+                    }
+                    ImGui::PopItemWidth();
+                    continue;
+                }
+                case HtmlParser::HtmlTag::BUTTON:
+                {
+                    ImGui::Button(elem.content.c_str());
+                    continue;
+                }
+                case HtmlParser::HtmlTag::OL:
+                case HtmlParser::HtmlTag::UL:
+                {
+                    ImGui::BeginListBox("ul", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing()));
+                    {
+                        create_elements(elem.children);
+                        ImGui::EndListBox();
+                    }
+                    continue;
+                }
+                case HtmlParser::HtmlTag::LI:
+                {
+                    ImGui::Text(elem.content.c_str());
+                    create_elements(elem.children);
+                    continue;
+                }
+                case HtmlParser::HtmlTag::IMG:
+                {
+                }
+                case HtmlParser::HtmlTag::TABLE:
+                {
+                }
+                case HtmlParser::HtmlTag::TR:
+                {
+                }
+                case HtmlParser::HtmlTag::TH:
+                {
+                }
+                case HtmlParser::HtmlTag::TD:
+                {
+                }
+                case HtmlParser::HtmlTag::FORM:
+                {
+                }
+                case HtmlParser::HtmlTag::H1:
+                {
+                }
+                case HtmlParser::HtmlTag::H2:
+                {
+                }
+                case HtmlParser::HtmlTag::H3:
+                {
+                }
+                case HtmlParser::HtmlTag::H4:
+                {
+                }
+                case HtmlParser::HtmlTag::H5:
+                {
+                }
+                case HtmlParser::HtmlTag::H6:
+                {
+                }
 
-                ImGui::EndChild();
-            }
-            if (tag == "p")
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, black_color);
-                // ImVec2 padding(20, 10); // Horizontal and vertical padding
-                // ImGui::Dummy(padding);  // This creates an invisible space (padding)
-                ImGui::Text(elem.content.c_str());
-                ImGui::PopStyleColor();
+                case HtmlParser::HtmlTag::NAV:
+                {
+                }
+                default:
+                {
+                }
+                }
             }
         }
     }
@@ -76,6 +158,7 @@ namespace HtmlRenderer
         ImGui_ImplOpenGL3_Init("#version 120");
         ImVec4 new_bg_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Choose your desired color (RGBA)
         ImGui::PushStyleColor(ImGuiCol_WindowBg, new_bg_color);
+
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();

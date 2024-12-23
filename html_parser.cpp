@@ -7,9 +7,116 @@
 #include <algorithm>
 #include <numeric>
 #include "parsing_utils.h"
+#include <unordered_map>
+#include <stdexcept>
 
 namespace HtmlParser
 {
+    const char *serialize_html_tag(HtmlTag tag)
+    {
+        switch (tag)
+        {
+        case HtmlTag::HTML:
+            return "html";
+        case HtmlTag::HEAD:
+            return "head";
+        case HtmlTag::BODY:
+            return "body";
+        case HtmlTag::TITLE:
+            return "title";
+        case HtmlTag::SCRIPT:
+            return "script";
+        case HtmlTag::STYLE:
+            return "style";
+        case HtmlTag::DIV:
+            return "div";
+        case HtmlTag::P:
+            return "p";
+        case HtmlTag::A:
+            return "a";
+        case HtmlTag::IMG:
+            return "img";
+        case HtmlTag::UL:
+            return "ul";
+        case HtmlTag::OL:
+            return "ol";
+        case HtmlTag::LI:
+            return "li";
+        case HtmlTag::TABLE:
+            return "table";
+        case HtmlTag::TR:
+            return "tr";
+        case HtmlTag::TH:
+            return "th";
+        case HtmlTag::TD:
+            return "td";
+        case HtmlTag::FORM:
+            return "form";
+        case HtmlTag::INPUT:
+            return "input";
+        case HtmlTag::BUTTON:
+            return "button";
+        case HtmlTag::H1:
+            return "h1";
+        case HtmlTag::H2:
+            return "h2";
+        case HtmlTag::H3:
+            return "h3";
+        case HtmlTag::H4:
+            return "h4";
+        case HtmlTag::H5:
+            return "h5";
+        case HtmlTag::H6:
+            return "h6";
+        case HtmlTag::NAV:
+            return "nav";
+        default:
+            return "unknown";
+        }
+    }
+
+    std::optional<HtmlTag> parse_string_to_tag(const std::string &tagName)
+    {
+        static const std::unordered_map<std::string, HtmlTag> tagMap = {
+            {"html", HtmlTag::HTML},
+            {"head", HtmlTag::HEAD},
+            {"body", HtmlTag::BODY},
+            {"script", HtmlTag::SCRIPT},
+            {"style", HtmlTag::STYLE},
+            {"div", HtmlTag::DIV},
+            {"span", HtmlTag::SPAN},
+            {"p", HtmlTag::P},
+            {"a", HtmlTag::A},
+            {"img", HtmlTag::IMG},
+            {"ul", HtmlTag::UL},
+            {"ol", HtmlTag::OL},
+            {"li", HtmlTag::LI},
+            {"table", HtmlTag::TABLE},
+            {"tr", HtmlTag::TR},
+            {"th", HtmlTag::TH},
+            {"td", HtmlTag::TD},
+            {"form", HtmlTag::FORM},
+            {"input", HtmlTag::INPUT},
+            {"button", HtmlTag::BUTTON},
+            {"h1", HtmlTag::H1},
+            {"h2", HtmlTag::H2},
+            {"h3", HtmlTag::H3},
+            {"h4", HtmlTag::H4},
+            {"h5", HtmlTag::H5},
+            {"h6", HtmlTag::H6},
+            {"title", HtmlTag::TITLE}};
+
+        auto it = tagMap.find(tagName);
+        if (it != tagMap.end())
+        {
+            return {it->second};
+        }
+        else
+        {
+            return {};
+        }
+    }
+
     std::string to_string(const HtmlElement &htmlElement)
     {
         std::stringstream ss;
@@ -20,8 +127,8 @@ namespace HtmlParser
                                { return to_string(he); });
 
         std::string result = std::accumulate(cs.begin(), cs.end(), std::string());
-
-        ss << "<" << htmlElement.tagName << ">" << htmlElement.content << result << "</" << htmlElement.tagName << ">";
+        std::string tagString = serialize_html_tag(htmlElement.tagName);
+        ss << "<" << tagString << ">" << htmlElement.content << result << "</" << tagString << ">";
         return ss.str();
     }
 
@@ -50,9 +157,9 @@ namespace HtmlParser
         }
     }
 
-    ParseResult<std::string> parse_tag(std::string raw, int &index)
+    ParseResult<HtmlTag> parse_tag(std::string raw, int &index)
     {
-        ParseResult<std::string> pr;
+        ParseResult<HtmlTag> pr;
 
         std::string output;
         if (!isalpha(raw.at(index)))
@@ -74,7 +181,15 @@ namespace HtmlParser
             return pr;
         }
         index++;
-        pr.emplace<1>(output);
+        std::optional<HtmlTag> optionalTag = parse_string_to_tag(output);
+        if (optionalTag.has_value())
+        {
+            pr.emplace<1>(optionalTag.value());
+        }
+        else
+        {
+            pr.emplace<0>("Unknown HTML tag\n");
+        }
 
         return pr;
     }
@@ -89,7 +204,7 @@ namespace HtmlParser
             return std::get<std::string>(isChar);
         }
 
-        ParseResult<std::string> tagName = parse_tag(raw, index);
+        ParseResult<HtmlTag> tagName = parse_tag(raw, index);
 
         if (tagName.index() == 0)
         {
@@ -114,7 +229,7 @@ namespace HtmlParser
                 if (raw.at(index + 1) == '/')
                 {
                     index += 2;
-                    ParseResult<std::string> closingTag = parse_tag(raw, index);
+                    ParseResult<HtmlTag> closingTag = parse_tag(raw, index);
 
                     if (closingTag.index() == 0)
                     {
@@ -124,7 +239,7 @@ namespace HtmlParser
                     else if (std::get<1>(closingTag) != he.tagName)
                     {
                         std::stringstream ss;
-                        ss << "Expected closing tag '" << std::get<1>(tagName) << "' but found: " << std::get<1>(closingTag) << "\n";
+                        ss << "Expected closing tag '" << serialize_html_tag(std::get<1>(tagName)) << "' but found: " << serialize_html_tag(std::get<1>(closingTag)) << "\n";
                         return ss.str();
                     }
                     else
@@ -158,7 +273,7 @@ namespace HtmlParser
                         if (raw.at(index + 1) == '/')
                         {
                             index += 2;
-                            ParseResult<std::string> closingTag = parse_tag(raw, index);
+                            ParseResult<HtmlTag> closingTag = parse_tag(raw, index);
 
                             if (closingTag.index() == 0)
                             {
@@ -167,7 +282,7 @@ namespace HtmlParser
                             else if (std::get<1>(closingTag) != he.tagName)
                             {
                                 std::stringstream ss;
-                                ss << "Expected closing tag '" << std::get<1>(tagName) << "' but found: " << std::get<1>(closingTag) << "\n";
+                                ss << "Expected closing tag '" << serialize_html_tag(std::get<1>(tagName)) << "' but found: " << serialize_html_tag(std::get<1>(closingTag)) << "\n";
                                 return ss.str();
                             }
                             else

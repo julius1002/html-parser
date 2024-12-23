@@ -6,7 +6,7 @@
 int main()
 {
     std::string raw = R"(<html>   <head>    </head>    <body>    <div>    <p>   test    </p> <div>bla </div>  </div>   </body>   </html>)";
-    std::string raw1 = R"(<html><div>    <p>   test    </p> </div><div>bla </div>  <div>third row </div> </html>)";
+    std::string raw1 = R"(<html><ul><li>test</li><li><button>click me</button></li></ul><input></input><button>my button</button><div>    <p>  test    </p> </div><div>bla </div>  <div>third row </div> </html>)";
     std::string raw2 = R"(<p>bla</p><p>test</p>)";
     HtmlParser::ParseResult<HtmlParser::HtmlTree> dt = HtmlParser::parse(raw1);
 
@@ -24,7 +24,7 @@ int main()
     {
         for (const auto &elem : unclosedElements)
         {
-            std::cout << "Element not closed: " << elem.tagName << "\n";
+            std::cout << "Element not closed: " << HtmlParser::serialize_html_tag(elem.tagName) << "\n";
         }
         return 0;
     }

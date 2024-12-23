@@ -21,6 +21,9 @@ TARGET := app
 
 all: $(TARGET)
 
+test: test.cpp html_parser.cpp parsing_utils.cpp
+	g++ $(CXXFLAGS) test.cpp html_parser.cpp parsing_utils.cpp -o test
+
 $(TARGET): $(OBJS)
 	$(CXX) $(OBJS) -o $(TARGET) $(LIBS)
 
