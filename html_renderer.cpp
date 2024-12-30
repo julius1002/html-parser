@@ -10,10 +10,8 @@
 
 namespace HtmlRenderer
 {
-
     void create_elements(HtmlParser::HtmlTree htmlTree)
     {
-
         ImVec4 black_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
         for (auto const &elem : htmlTree)
         {
@@ -25,9 +23,11 @@ namespace HtmlRenderer
                     create_elements(elem.children);
                     return;
                 }
+                case HtmlParser::HtmlTag::NAV:
                 case HtmlParser::HtmlTag::HEAD:
                 case HtmlParser::HtmlTag::BODY:
                 case HtmlParser::HtmlTag::DIV:
+                case HtmlParser::HtmlTag::SPAN:
                 {
                     ImGui::BeginChild("DivContainer", ImVec2(300, 100), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
                     if (elem.content != "")
@@ -56,10 +56,9 @@ namespace HtmlRenderer
                     ImGui::PushItemWidth(200);
                     if (ImGui::InputText("##", buffer, sizeof(buffer)))
                     {
-                        // This will be triggered when the user modifies the input field
-                        // std::cout << "User input: " << inputText << std::endl;
                     }
                     ImGui::PopItemWidth();
+                    ImGui::SameLine();
                     continue;
                 }
                 case HtmlParser::HtmlTag::BUTTON:
@@ -98,31 +97,6 @@ namespace HtmlRenderer
                 case HtmlParser::HtmlTag::TD:
                 {
                 }
-                case HtmlParser::HtmlTag::FORM:
-                {
-                }
-                case HtmlParser::HtmlTag::H1:
-                {
-                }
-                case HtmlParser::HtmlTag::H2:
-                {
-                }
-                case HtmlParser::HtmlTag::H3:
-                {
-                }
-                case HtmlParser::HtmlTag::H4:
-                {
-                }
-                case HtmlParser::HtmlTag::H5:
-                {
-                }
-                case HtmlParser::HtmlTag::H6:
-                {
-                }
-
-                case HtmlParser::HtmlTag::NAV:
-                {
-                }
                 default:
                 {
                 }
@@ -156,7 +130,7 @@ namespace HtmlRenderer
 
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 120");
-        ImVec4 new_bg_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Choose your desired color (RGBA)
+        ImVec4 new_bg_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, new_bg_color);
 
         while (!glfwWindowShouldClose(window))

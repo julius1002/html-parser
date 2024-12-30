@@ -2,3 +2,6 @@ main
 main.dSYM/
 test
 test.dSYM/
+*.o
+app
+*.ini

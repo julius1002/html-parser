@@ -2,13 +2,41 @@
 #include "html_parser.h"
 #include "html_renderer.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
-int main()
+std::string read_file(std::string location)
 {
-    std::string raw = R"(<html>   <head>    </head>    <body>    <div>    <p>   test    </p> <div>bla </div>  </div>   </body>   </html>)";
-    std::string raw1 = R"(<html><ul><li>test</li><li><button>click me</button></li></ul><input></input><button>my button</button><div>    <p>  test    </p> </div><div>bla </div>  <div>third row </div> </html>)";
-    std::string raw2 = R"(<p>bla</p><p>test</p>)";
-    HtmlParser::ParseResult<HtmlParser::HtmlTree> dt = HtmlParser::parse(raw1);
+    std::ifstream file(location);
+
+    // Check if the file is open
+    if (!file.is_open())
+    {
+        std::cerr << "Error opening file!" << std::endl;
+        return ""; // Exit with an error code
+    }
+
+    std::string line;
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+
+    std::string fileContents = buffer.str();
+
+    file.close();
+    return fileContents;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc <= 1)
+    {
+        std::cerr << "Please provide a valid path to a html file as parameter.\n";
+        exit(1);
+    }
+
+    std::string content = read_file(argv[1]);
+    HtmlParser::ParseResult<HtmlParser::HtmlTree> dt = HtmlParser::parse(content);
 
     if (std::holds_alternative<std::string>(dt))
     {
