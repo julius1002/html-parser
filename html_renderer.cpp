@@ -15,12 +15,12 @@ namespace HtmlRenderer
         ImVec4 black_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
         for (auto const &elem : htmlTree)
         {
-            switch (elem.tagName)
+            switch (elem->tagName)
             {
                 {
                 case HtmlParser::HtmlTag::HTML:
                 {
-                    create_elements(elem.children);
+                    create_elements(elem->children);
                     return;
                 }
                 case HtmlParser::HtmlTag::NAV:
@@ -30,13 +30,13 @@ namespace HtmlRenderer
                 case HtmlParser::HtmlTag::SPAN:
                 {
                     ImGui::BeginChild("DivContainer", ImVec2(300, 100), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-                    if (elem.content != "")
+                    if (elem->content != "")
                     {
                         ImGui::PushStyleColor(ImGuiCol_Text, black_color);
-                        ImGui::Text(elem.content.c_str());
+                        ImGui::Text(elem->content.c_str());
                         ImGui::PopStyleColor();
                     }
-                    create_elements(elem.children);
+                    create_elements(elem->children);
 
                     ImGui::EndChild();
                     continue;
@@ -45,7 +45,7 @@ namespace HtmlRenderer
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, black_color);
                     ImGui::Dummy(ImVec2(0, 10));
-                    ImGui::Text(elem.content.c_str());
+                    ImGui::Text(elem->content.c_str());
                     ImGui::Dummy(ImVec2(0, 10));
                     ImGui::PopStyleColor();
                     continue;
@@ -63,7 +63,7 @@ namespace HtmlRenderer
                 }
                 case HtmlParser::HtmlTag::BUTTON:
                 {
-                    ImGui::Button(elem.content.c_str());
+                    ImGui::Button(elem->content.c_str());
                     continue;
                 }
                 case HtmlParser::HtmlTag::OL:
@@ -71,15 +71,15 @@ namespace HtmlRenderer
                 {
                     ImGui::BeginListBox("ul", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing()));
                     {
-                        create_elements(elem.children);
+                        create_elements(elem->children);
                         ImGui::EndListBox();
                     }
                     continue;
                 }
                 case HtmlParser::HtmlTag::LI:
                 {
-                    ImGui::Text(elem.content.c_str());
-                    create_elements(elem.children);
+                    ImGui::Text(elem->content.c_str());
+                    create_elements(elem->children);
                     continue;
                 }
                 case HtmlParser::HtmlTag::IMG:

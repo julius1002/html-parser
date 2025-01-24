@@ -117,18 +117,18 @@ namespace HtmlParser
         }
     }
 
-    std::string to_string(const HtmlElement &htmlElement)
+    std::string to_string(const HtmlElement *htmlElement)
     {
         std::stringstream ss;
         std::vector<std::string> cs;
-        std::ranges::transform(htmlElement.children,
+        std::ranges::transform(htmlElement->children,
                                std::back_inserter(cs),
-                               [](HtmlElement he)
+                               [](HtmlElement *he)
                                { return to_string(he); });
 
         std::string result = std::accumulate(cs.begin(), cs.end(), std::string());
-        std::string tagString = serialize_html_tag(htmlElement.tagName);
-        ss << "<" << tagString << ">" << htmlElement.content << result << "</" << tagString << ">";
+        std::string tagString = serialize_html_tag(htmlElement->tagName);
+        ss << "<" << tagString << ">" << htmlElement->content << result << "</" << tagString << ">";
         return ss.str();
     }
 
@@ -194,9 +194,9 @@ namespace HtmlParser
         return pr;
     }
 
-    ParseResult<HtmlElement> parse_html_element(std::string raw, int &index)
+    ParseResult<HtmlElement *> parse_html_element(std::string raw, int &index)
     {
-        HtmlElement he;
+        HtmlElement *he = new HtmlElement;
         ParseResult<char> isChar = parse_character('<', raw, index);
 
         if (std::holds_alternative<std::string>(isChar))
@@ -213,7 +213,7 @@ namespace HtmlParser
         }
         else
         {
-            he.tagName = std::get<1>(tagName);
+            he->tagName = std::get<1>(tagName);
         }
         try
         {
@@ -221,7 +221,7 @@ namespace HtmlParser
             if (isalnum(raw.at(index)))
             {
                 std::string content = ParsingUtils::parse_string(raw, index);
-                he.content = content;
+                he->content = content;
             }
             ParsingUtils::skip_spaces_newlines(raw, index);
             if (raw.at(index) == '<')
@@ -236,7 +236,7 @@ namespace HtmlParser
                         // return error message
                         return std::get<0>(closingTag);
                     }
-                    else if (std::get<1>(closingTag) != he.tagName)
+                    else if (std::get<1>(closingTag) != he->tagName)
                     {
                         std::stringstream ss;
                         ss << "Expected closing tag '" << serialize_html_tag(std::get<1>(tagName)) << "' but found: " << serialize_html_tag(std::get<1>(closingTag)) << "\n";
@@ -244,7 +244,7 @@ namespace HtmlParser
                     }
                     else
                     {
-                        he.setClosed(true);
+                        he->setClosed(true);
                     }
                 }
                 else
@@ -256,7 +256,7 @@ namespace HtmlParser
                         {
                             break;
                         }
-                        ParseResult<HtmlElement> child = parse_html_element(raw, index);
+                        ParseResult<HtmlElement *> child = parse_html_element(raw, index);
 
                         if (std::holds_alternative<std::string>(child))
                         {
@@ -264,7 +264,7 @@ namespace HtmlParser
                         }
                         else
                         {
-                            he.children.push_back(std::get<HtmlElement>(child));
+                            he->children.push_back(std::get<HtmlElement *>(child));
                         }
                     }
 
@@ -279,7 +279,7 @@ namespace HtmlParser
                             {
                                 return std::get<0>(closingTag);
                             }
-                            else if (std::get<1>(closingTag) != he.tagName)
+                            else if (std::get<1>(closingTag) != he->tagName)
                             {
                                 std::stringstream ss;
                                 ss << "Expected closing tag '" << serialize_html_tag(std::get<1>(tagName)) << "' but found: " << serialize_html_tag(std::get<1>(closingTag)) << "\n";
@@ -287,7 +287,7 @@ namespace HtmlParser
                             }
                             else
                             {
-                                he.setClosed(true);
+                                he->setClosed(true);
                             }
                         }
                         else
@@ -313,13 +313,13 @@ namespace HtmlParser
         return he;
     }
 
-    std::vector<HtmlElement> notClosedElements(HtmlTree dt)
+    std::vector<HtmlElement *> notClosedElements(HtmlTree dt)
     {
-        std::vector<HtmlElement> result;
+        std::vector<HtmlElement *> result;
         std::ranges::copy(
             dt | std::views::filter(
-                     [](const HtmlElement &e)
-                     { return !e.isClosed(); }),
+                     [](const HtmlElement *e)
+                     { return !e->isClosed(); }),
             std::back_inserter(result));
         return result;
     }
@@ -328,21 +328,30 @@ namespace HtmlParser
     {
         int index = 0;
 
-        std::vector<HtmlElement> elements{};
+        std::vector<HtmlElement *> elements{};
         while (true)
         {
             ParsingUtils::skip_spaces_newlines(raw, index);
-            ParseResult<HtmlElement> he = parse_html_element(raw, index);
+            ParseResult<HtmlElement *> he = parse_html_element(raw, index);
             if (std::holds_alternative<std::string>(he))
             {
                 return std::get<std::string>(he);
             }
-            elements.push_back(std::get<HtmlElement>(he));
+            elements.push_back(std::get<HtmlElement *>(he));
             if (static_cast<size_t>(index) >= raw.length())
             {
                 break;
             }
         }
         return elements;
+    }
+
+    void clean_up(HtmlTree dt)
+    {
+        for (HtmlElement *elem : dt)
+        {
+            clean_up(elem->children);
+            delete elem;
+        }
     }
 }

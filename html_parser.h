@@ -64,7 +64,7 @@ namespace HtmlParser
     public:
         HtmlTag tagName;
         std::string content;
-        std::vector<HtmlElement> children;
+        std::vector<HtmlElement*> children;
         bool isClosed() const
         {
             return closed;
@@ -78,7 +78,7 @@ namespace HtmlParser
         bool closed = false;
     };
 
-    using HtmlTree = std::vector<HtmlElement>;
+    using HtmlTree = std::vector<HtmlElement*>;
 
     template <typename T>
     using ParseResult = std::variant<std::string, T>;
@@ -87,7 +87,9 @@ namespace HtmlParser
 
     std::string to_string(HtmlTree dt);
 
-    std::vector<HtmlElement> notClosedElements(HtmlTree htmlTree);
+    std::vector<HtmlElement*> notClosedElements(HtmlTree htmlTree);
 
     const char *serialize_html_tag(HtmlTag tag);
+
+    void clean_up(HtmlTree dt);
 }

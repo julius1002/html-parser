@@ -47,17 +47,18 @@ int main(int argc, char *argv[])
     std::string str = HtmlParser::to_string(htmlTree);
 
     std::cout << str;
-    std::vector<HtmlParser::HtmlElement> unclosedElements = HtmlParser::notClosedElements(htmlTree);
+    std::vector<HtmlParser::HtmlElement*> unclosedElements = HtmlParser::notClosedElements(htmlTree);
     if (unclosedElements.size() > 0)
     {
         for (const auto &elem : unclosedElements)
         {
-            std::cout << "Element not closed: " << HtmlParser::serialize_html_tag(elem.tagName) << "\n";
+            std::cout << "Element not closed: " << HtmlParser::serialize_html_tag(elem->tagName) << "\n";
         }
         return 0;
     }
 
     HtmlRenderer::render(htmlTree);
+    HtmlParser::clean_up(htmlTree);
 
     return 0;
 }
